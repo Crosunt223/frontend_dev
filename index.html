@@ -6717,10 +6717,15 @@ async function changeEmail() {
     var r = await apiFetch('/me/change-email', { method:'POST', body:JSON.stringify({ newEmail, password: pass }) });
     if (r.ok) {
         msg.style.color = '#22c55e';
-        msg.textContent = r.data.message || '✓ Link potwierdzający wysłany!';
+        msg.textContent = r.data.message || '✓ Email zapisany!';
         document.getElementById('newEmailInput').value = '';
         document.getElementById('emailConfirmPass').value = '';
-        // Baner zostanie ukryty dopiero po kliknięciu w link potwierdzający
+        if (r.data.confirmed) {
+            var banner = document.getElementById('emailBanner');
+            if (banner) banner.style.display = 'none';
+            try { localStorage.setItem('hk_email_banner_dismissed', '1'); } catch(e) {}
+            loadAccountInfo();
+        }
     } else {
         msg.style.color = '#ef4444';
         msg.textContent = (r.data && r.data.error) || 'Błąd.';
