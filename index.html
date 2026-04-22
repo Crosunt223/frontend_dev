@@ -5103,29 +5103,28 @@ window.onload = function() {
         try { userObj = JSON.parse(savedUser); } catch(e) { userObj = null; }
     }
 
-    if (savedToken && userObj && userObj.id) {
-        // Mamy sesję — wczytaj od razu bez czekania na serwer
+    // Sprawdz URL tokeny ZAWSZE — niezależnie czy zalogowany
+    var urlParams  = new URLSearchParams(window.location.search);
+    var resetTok   = urlParams.get('resetToken');
+    var confirmTok = urlParams.get('confirmEmail');
+
+    if (confirmTok) {
+        // Potwierdzenie emaila — obsłuż od razu, nie ładuj aplikacji
+        confirmEmailChange(confirmTok);
+    } else if (resetTok) {
+        // Reset hasła — pokaż formularz
+        showResetPasswordPanel(resetTok);
+    } else if (savedToken && userObj && userObj.id) {
+        // Normalna sesja — wczytaj aplikację
         authToken   = savedToken;
         currentUser = userObj;
         if (savedProgress) {
             try { cachedProgress = JSON.parse(savedProgress); } catch(e) { cachedProgress = {}; }
         }
-        // Pokaż aplikację natychmiast
         initAppAfterLogin();
-        // W tle tylko odśwież progress — NIE wylogowuj nigdy przy błędzie
         _backgroundRefreshProgress();
     } else {
-        // Sprawdz URL tokeny (reset hasla, potwierdzenie emaila)
-        var urlParams = new URLSearchParams(window.location.search);
-        var resetTok  = urlParams.get('resetToken');
-        var confirmTok = urlParams.get('confirmEmail');
-        if (resetTok) {
-            showResetPasswordPanel(resetTok);
-        } else if (confirmTok) {
-            confirmEmailChange(confirmTok);
-        } else {
-            loadTeams().then(function() { showPanel('login'); }).catch(function() { showPanel('login'); });
-        }
+        loadTeams().then(function() { showPanel('login'); }).catch(function() { showPanel('login'); });
     }
 };
 
